@@ -1,7 +1,13 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, Link, router, usePage } from '@inertiajs/react';
+import { Head, Link, router, usePage, useForm } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
 import { formatCurrency } from '@/Utils/currency';
+import Modal from '@/Components/Modal';
+import TextInput from '@/Components/TextInput';
+import InputLabel from '@/Components/InputLabel';
+import InputError from '@/Components/InputError';
+import PrimaryButton from '@/Components/PrimaryButton';
+import SecondaryButton from '@/Components/SecondaryButton';
 
 export default function Index({ auth, vendors, filters = {} }) {
     const [search, setSearch] = useState(filters.search || '');
@@ -9,7 +15,8 @@ export default function Index({ auth, vendors, filters = {} }) {
     const [isSearching, setIsSearching] = useState(false);
     const [hasUserInteracted, setHasUserInteracted] = useState(false);
     const [showCreateModal, setShowCreateModal] = useState(false);
-    const [newVendor, setNewVendor] = useState({
+    
+    const { data, setData, post, processing, errors, reset, clearErrors } = useForm({
         name: '',
         description: '',
         contact_person: '',
@@ -68,38 +75,24 @@ export default function Index({ auth, vendors, filters = {} }) {
         });
     };
 
-    const handleCreateVendor = async (e) => {
+    const handleCreateVendor = (e) => {
         e.preventDefault();
         
-        try {
-            const response = await fetch('/api/vendors', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'Authorization': `Bearer ${auth.token}`,
-                },
-                body: JSON.stringify(newVendor),
-            });
-
-            if (response.ok) {
+        post(route('vendors.store'), {
+            onSuccess: () => {
                 setShowCreateModal(false);
-                setNewVendor({
-                    name: '',
-                    description: '',
-                    contact_person: '',
-                    contact_email: '',
-                    contact_phone: '',
-                    status: 'active'
-                });
-                router.reload();
-            } else {
-                const error = await response.json();
-                alert(error.message || 'Failed to create vendor');
+                reset();
+            },
+            onError: () => {
+                // Errors are automatically handled by Inertia
             }
-        } catch (error) {
-            alert('Failed to create vendor');
-        }
+        });
+    };
+
+    const closeModal = () => {
+        setShowCreateModal(false);
+        clearErrors();
+        reset();
     };
 
     const getStatusBadge = (status) => {
@@ -122,13 +115,13 @@ export default function Index({ auth, vendors, filters = {} }) {
                     <h2 className="text-xl font-semibold leading-tight text-gray-800">
                         Vendors
                     </h2>
-                    {(auth.user.user_type === 'EVENT_ADMIN' || auth.user.user_type === 'SUPER_ADMIN') && (
-                        <button
+                    {auth.user.user_type === 'SUPER_ADMIN' && (
+                        <PrimaryButton
                             onClick={() => setShowCreateModal(true)}
-                            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium"
+                            className="text-sm font-medium"
                         >
                             Create New Vendor
-                        </button>
+                        </PrimaryButton>
                     )}
                 </div>
             }
@@ -318,14 +311,14 @@ export default function Index({ auth, vendors, filters = {} }) {
                                                             : 'Get started by creating your first vendor.'
                                                         }
                                                     </p>
-                                                    {!(search || status) && (auth.user.user_type === 'EVENT_ADMIN' || auth.user.user_type === 'SUPER_ADMIN') && (
+                                                    {!(search || status) && auth.user.user_type === 'SUPER_ADMIN' && (
                                                         <div className="mt-6">
-                                                            <button
+                                                            <PrimaryButton
                                                                 onClick={() => setShowCreateModal(true)}
-                                                                className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+                                                                className="shadow-sm"
                                                             >
                                                                 Create Vendor
-                                                            </button>
+                                                            </PrimaryButton>
                                                         </div>
                                                     )}
                                                 </div>
@@ -373,99 +366,137 @@ export default function Index({ auth, vendors, filters = {} }) {
             </div>
 
             {/* Create Vendor Modal */}
-            {showCreateModal && (
-                <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-                    <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-                        <div className="mt-3">
-                            <div className="flex items-center justify-between mb-4">
-                                <h3 className="text-lg font-medium text-gray-900">Create New Vendor</h3>
-                                <button
-                                    onClick={() => setShowCreateModal(false)}
-                                    className="text-gray-400 hover:text-gray-600"
-                                >
-                                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                    </svg>
-                                </button>
+            <Modal show={showCreateModal} onClose={closeModal} maxWidth="lg">
+                <div className="p-6">
+                    <div className="flex items-center justify-between mb-6">
+                        <h3 className="text-xl font-semibold text-gray-900">Create New Vendor</h3>
+                        <button
+                            onClick={closeModal}
+                            className="text-gray-400 hover:text-gray-600 transition-colors"
+                        >
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+
+                    <form onSubmit={handleCreateVendor} className="space-y-6">
+                        <div className="grid grid-cols-1 gap-6">
+                            <div>
+                                <InputLabel htmlFor="vendor_name" value="Vendor Name" />
+                                <TextInput
+                                    id="vendor_name"
+                                    type="text"
+                                    required
+                                    value={data.name}
+                                    onChange={(e) => setData('name', e.target.value)}
+                                    className="mt-1 block w-full"
+                                    placeholder="Enter vendor name"
+                                    isFocused
+                                />
+                                <InputError message={errors.name} className="mt-2" />
                             </div>
-                            <form onSubmit={handleCreateVendor} className="space-y-4">
+
+                            <div>
+                                <InputLabel htmlFor="vendor_description" value="Description" />
+                                <textarea
+                                    id="vendor_description"
+                                    value={data.description}
+                                    onChange={(e) => setData('description', e.target.value)}
+                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                    rows={3}
+                                    placeholder="Describe the vendor's business..."
+                                />
+                                <InputError message={errors.description} className="mt-2" />
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700">Name *</label>
-                                    <input
+                                    <InputLabel htmlFor="contact_person" value="Contact Person" />
+                                    <TextInput
+                                        id="contact_person"
                                         type="text"
-                                        required
-                                        value={newVendor.name}
-                                        onChange={(e) => setNewVendor({...newVendor, name: e.target.value})}
-                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                        value={data.contact_person}
+                                        onChange={(e) => setData('contact_person', e.target.value)}
+                                        className="mt-1 block w-full"
+                                        placeholder="Full name"
                                     />
+                                    <InputError message={errors.contact_person} className="mt-2" />
                                 </div>
+
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700">Description</label>
-                                    <textarea
-                                        value={newVendor.description}
-                                        onChange={(e) => setNewVendor({...newVendor, description: e.target.value})}
-                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                        rows={3}
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700">Contact Person</label>
-                                    <input
-                                        type="text"
-                                        value={newVendor.contact_person}
-                                        onChange={(e) => setNewVendor({...newVendor, contact_person: e.target.value})}
-                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700">Contact Email</label>
-                                    <input
+                                    <InputLabel htmlFor="contact_email" value="Contact Email" />
+                                    <TextInput
+                                        id="contact_email"
                                         type="email"
-                                        value={newVendor.contact_email}
-                                        onChange={(e) => setNewVendor({...newVendor, contact_email: e.target.value})}
-                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                        value={data.contact_email}
+                                        onChange={(e) => setData('contact_email', e.target.value)}
+                                        className="mt-1 block w-full"
+                                        placeholder="contact@vendor.com"
                                     />
+                                    <InputError message={errors.contact_email} className="mt-2" />
                                 </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700">Contact Phone</label>
-                                    <input
+                                    <InputLabel htmlFor="contact_phone" value="Contact Phone" />
+                                    <TextInput
+                                        id="contact_phone"
                                         type="tel"
-                                        value={newVendor.contact_phone}
-                                        onChange={(e) => setNewVendor({...newVendor, contact_phone: e.target.value})}
-                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                        value={data.contact_phone}
+                                        onChange={(e) => setData('contact_phone', e.target.value)}
+                                        className="mt-1 block w-full"
+                                        placeholder="+264 81 123 4567"
                                     />
+                                    <InputError message={errors.contact_phone} className="mt-2" />
                                 </div>
+
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700">Status</label>
+                                    <InputLabel htmlFor="vendor_status" value="Status" />
                                     <select
-                                        value={newVendor.status}
-                                        onChange={(e) => setNewVendor({...newVendor, status: e.target.value})}
-                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                        id="vendor_status"
+                                        value={data.status}
+                                        onChange={(e) => setData('status', e.target.value)}
+                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                                     >
                                         <option value="active">Active</option>
                                         <option value="inactive">Inactive</option>
                                     </select>
+                                    <InputError message={errors.status} className="mt-2" />
                                 </div>
-                                <div className="flex justify-end space-x-3 pt-4">
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowCreateModal(false)}
-                                        className="bg-gray-300 hover:bg-gray-400 text-gray-700 px-4 py-2 rounded-md text-sm"
-                                    >
-                                        Cancel
-                                    </button>
-                                    <button
-                                        type="submit"
-                                        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm"
-                                    >
-                                        Create Vendor
-                                    </button>
-                                </div>
-                            </form>
+                            </div>
                         </div>
-                    </div>
+
+                        <div className="flex justify-end space-x-3 pt-6 border-t border-gray-200">
+                            <SecondaryButton
+                                type="button"
+                                onClick={closeModal}
+                                disabled={processing}
+                            >
+                                Cancel
+                            </SecondaryButton>
+                            <PrimaryButton
+                                type="submit"
+                                disabled={processing}
+                                className="relative"
+                            >
+                                {processing ? (
+                                    <>
+                                        <svg className="animate-spin -ml-1 mr-3 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                        </svg>
+                                        Creating...
+                                    </>
+                                ) : (
+                                    'Create Vendor'
+                                )}
+                            </PrimaryButton>
+                        </div>
+                    </form>
                 </div>
-            )}
+            </Modal>
         </AuthenticatedLayout>
     );
 }

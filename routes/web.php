@@ -5,6 +5,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Web\TagController;
 use App\Http\Controllers\Web\VendorController;
 use App\Http\Controllers\Web\TransactionController;
+use App\Http\Controllers\Web\RefundController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -48,8 +49,26 @@ Route::middleware('auth')->group(function () {
     // Vendor management routes
     Route::resource('vendors', VendorController::class);
 
+    // Product management routes
+    Route::resource('products', \App\Http\Controllers\Web\ProductController::class);
+
     // Transaction management routes
     Route::resource('transactions', TransactionController::class);
+
+    // Refund management routes (Super Admin & Event Admin only)
+    Route::prefix('refunds')->name('refunds.')->group(function () {
+        Route::get('/', [RefundController::class, 'index'])->name('index');
+        Route::get('/{id}', [RefundController::class, 'show'])->name('show');
+        Route::post('/{id}/approve', [RefundController::class, 'approve'])->name('approve');
+        Route::post('/{id}/reject', [RefundController::class, 'reject'])->name('reject');
+    });
+
+    // Attendee-specific routes
+    Route::prefix('attendee')->name('attendee.')->group(function () {
+        Route::post('/link-tag', [\App\Http\Controllers\Web\AttendeeController::class, 'linkTag'])->name('link-tag');
+        Route::post('/request-refund', [\App\Http\Controllers\Web\AttendeeController::class, 'requestRefund'])->name('request-refund');
+        Route::get('/wallet-info', [\App\Http\Controllers\Web\AttendeeController::class, 'getWalletInfo'])->name('wallet-info');
+    });
 });
 
 require __DIR__.'/auth.php';

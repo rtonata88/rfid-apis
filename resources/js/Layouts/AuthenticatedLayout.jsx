@@ -30,24 +30,72 @@ export default function AuthenticatedLayout({ header, children }) {
                                 >
                                     Dashboard
                                 </NavLink>
-                                <NavLink
-                                    href={route('tags.index')}
-                                    active={route().current('tags.*')}
-                                >
-                                    RFID Tags
-                                </NavLink>
-                                <NavLink
-                                    href={route('vendors.index')}
-                                    active={route().current('vendors.*')}
-                                >
-                                    Vendors
-                                </NavLink>
-                                <NavLink
-                                    href={route('transactions.index')}
-                                    active={route().current('transactions.*')}
-                                >
-                                    Transactions
-                                </NavLink>
+                                
+                                {/* Super Admin and Event Admin Navigation */}
+                                {(user.user_type === 'SUPER_ADMIN' || user.user_type === 'EVENT_ADMIN') && (
+                                    <>
+                                        <NavLink
+                                            href={route('tags.index')}
+                                            active={route().current('tags.*')}
+                                        >
+                                            RFID Tags
+                                        </NavLink>
+                                        <NavLink
+                                            href={route('vendors.index')}
+                                            active={route().current('vendors.*')}
+                                        >
+                                            Vendors
+                                        </NavLink>
+                                        <NavLink
+                                            href={route('products.index')}
+                                            active={route().current('products.*')}
+                                        >
+                                            Products
+                                        </NavLink>
+                                        <NavLink
+                                            href={route('transactions.index')}
+                                            active={route().current('transactions.*')}
+                                        >
+                                            Transactions
+                                        </NavLink>
+                                        <NavLink
+                                            href={route('refunds.index')}
+                                            active={route().current('refunds.*')}
+                                        >
+                                            Refunds
+                                        </NavLink>
+                                    </>
+                                )}
+
+                                {/* Vendor Navigation */}
+                                {user.user_type === 'VENDOR' && (
+                                    <>
+                                        <NavLink
+                                            href={route('products.index')}
+                                            active={route().current('products.*')}
+                                        >
+                                            My Products
+                                        </NavLink>
+                                        <NavLink
+                                            href={route('transactions.index')}
+                                            active={route().current('transactions.*')}
+                                        >
+                                            My Sales
+                                        </NavLink>
+                                    </>
+                                )}
+
+                                {/* Attendee Navigation */}
+                                {user.user_type === 'ATTENDEE' && (
+                                    <>
+                                        <NavLink
+                                            href={route('transactions.index')}
+                                            active={route().current('transactions.*')}
+                                        >
+                                            My Transactions
+                                        </NavLink>
+                                    </>
+                                )}
                             </div>
                         </div>
 
@@ -152,24 +200,72 @@ export default function AuthenticatedLayout({ header, children }) {
                         >
                             Dashboard
                         </ResponsiveNavLink>
-                        <ResponsiveNavLink
-                            href={route('tags.index')}
-                            active={route().current('tags.*')}
-                        >
-                            RFID Tags
-                        </ResponsiveNavLink>
-                        <ResponsiveNavLink
-                            href={route('vendors.index')}
-                            active={route().current('vendors.*')}
-                        >
-                            Vendors
-                        </ResponsiveNavLink>
-                        <ResponsiveNavLink
-                            href={route('transactions.index')}
-                            active={route().current('transactions.*')}
-                        >
-                            Transactions
-                        </ResponsiveNavLink>
+                        
+                        {/* Super Admin and Event Admin Navigation */}
+                        {(user.user_type === 'SUPER_ADMIN' || user.user_type === 'EVENT_ADMIN') && (
+                            <>
+                                <ResponsiveNavLink
+                                    href={route('tags.index')}
+                                    active={route().current('tags.*')}
+                                >
+                                    RFID Tags
+                                </ResponsiveNavLink>
+                                <ResponsiveNavLink
+                                    href={route('vendors.index')}
+                                    active={route().current('vendors.*')}
+                                >
+                                    Vendors
+                                </ResponsiveNavLink>
+                                <ResponsiveNavLink
+                                    href={route('products.index')}
+                                    active={route().current('products.*')}
+                                >
+                                    Products
+                                </ResponsiveNavLink>
+                                <ResponsiveNavLink
+                                    href={route('transactions.index')}
+                                    active={route().current('transactions.*')}
+                                >
+                                    Transactions
+                                </ResponsiveNavLink>
+                                <ResponsiveNavLink
+                                    href={route('refunds.index')}
+                                    active={route().current('refunds.*')}
+                                >
+                                    Refunds
+                                </ResponsiveNavLink>
+                            </>
+                        )}
+
+                        {/* Vendor Navigation */}
+                        {user.user_type === 'VENDOR' && (
+                            <>
+                                <ResponsiveNavLink
+                                    href={route('products.index')}
+                                    active={route().current('products.*')}
+                                >
+                                    My Products
+                                </ResponsiveNavLink>
+                                <ResponsiveNavLink
+                                    href={route('transactions.index')}
+                                    active={route().current('transactions.*')}
+                                >
+                                    My Sales
+                                </ResponsiveNavLink>
+                            </>
+                        )}
+
+                        {/* Attendee Navigation */}
+                        {user.user_type === 'ATTENDEE' && (
+                            <>
+                                <ResponsiveNavLink
+                                    href={route('transactions.index')}
+                                    active={route().current('transactions.*')}
+                                >
+                                    My Transactions
+                                </ResponsiveNavLink>
+                            </>
+                        )}
                     </div>
 
                     <div className="border-t border-gray-200 pb-1 pt-4">

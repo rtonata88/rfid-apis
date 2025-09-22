@@ -54,11 +54,21 @@ class TransactionController extends Controller
             $query->whereDate('created_at', '<=', $request->date_to);
         }
 
-        // If user is a vendor, only show their transactions
+        // Filter transactions based on user type
         if ($request->user()->isVendor()) {
+            // Vendors only see their transactions
             $vendor = $request->user()->vendor;
             if ($vendor) {
                 $query->where('vendor_id', $vendor->id);
+            }
+        } elseif ($request->user()->isAttendee()) {
+            // Attendees only see transactions from their linked tags
+            $tagAttendee = $request->user()->load('tagAttendee.rfidTag')->tagAttendee;
+            if ($tagAttendee && $tagAttendee->rfidTag) {
+                $query->where('rfid_tag_id', $tagAttendee->rfidTag->id);
+            } else {
+                // If attendee has no tag, they see no transactions
+                $query->whereNull('id');
             }
         }
 
@@ -104,10 +114,20 @@ class TransactionController extends Controller
             $summaryQuery->whereDate('created_at', '<=', $request->date_to);
         }
 
+        // Apply same user type filtering for summary
         if ($request->user()->isVendor()) {
             $vendor = $request->user()->vendor;
             if ($vendor) {
                 $summaryQuery->where('vendor_id', $vendor->id);
+            }
+        } elseif ($request->user()->isAttendee()) {
+            // Attendees only see transactions from their linked tags
+            $tagAttendee = $request->user()->load('tagAttendee.rfidTag')->tagAttendee;
+            if ($tagAttendee && $tagAttendee->rfidTag) {
+                $summaryQuery->where('rfid_tag_id', $tagAttendee->rfidTag->id);
+            } else {
+                // If attendee has no tag, they see no transactions
+                $summaryQuery->whereNull('id');
             }
         }
 
@@ -146,6 +166,12 @@ class TransactionController extends Controller
             if (!$vendor || $transaction->vendor_id !== $vendor->id) {
                 abort(403, 'Unauthorized to view this transaction');
             }
+        } elseif ($request->user()->isAttendee()) {
+            // Attendees can only view transactions from their linked tags
+            $tagAttendee = $request->user()->load('tagAttendee.rfidTag')->tagAttendee;
+            if (!$tagAttendee || !$tagAttendee->rfidTag || $transaction->rfid_tag_id !== $tagAttendee->rfidTag->id) {
+                abort(403, 'Unauthorized to view this transaction');
+            }
         }
 
         // Get related transactions for this tag
@@ -162,7 +188,7 @@ class TransactionController extends Controller
         ]);
     }
 
-    public function create()
+    public function create(Request $request)
     {
         // Get active tags for selection
         $tags = RfidTag::where('status', 'active')
@@ -181,7 +207,7 @@ class TransactionController extends Controller
 
         // Get vendors for selection (if admin)
         $vendors = [];
-        if (auth()->user()->isEventAdmin() || auth()->user()->isSuperAdmin()) {
+        if ($request->user()->isEventAdmin() || $request->user()->isSuperAdmin()) {
             $vendors = Vendor::where('status', 'active')
                            ->orderBy('name')
                            ->get(['id', 'name']);
@@ -231,6 +257,8 @@ class TransactionController extends Controller
                 'rfid_tag_id' => $tag->id,
                 'user_id' => $request->user()->id,
                 'type' => $request->type,
+                'payment_method' => $request->type === 'refund' ? 'Refund' : 'Cash', // Default to Cash for other types
+                'approval_status' => 'approved', // Admin-created transactions are automatically approved
                 'amount' => $request->amount,
                 'balance_before' => $balanceBefore,
                 'balance_after' => $tag->balance,

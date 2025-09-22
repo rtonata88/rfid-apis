@@ -18,6 +18,7 @@ class TagTransaction extends Model
         'product_id',
         'type',
         'payment_method',
+        'approval_status',
         'amount',
         'quantity',
         'balance_before',
@@ -32,6 +33,10 @@ class TagTransaction extends Model
         'balance_before' => 'decimal:2',
         'balance_after' => 'decimal:2',
         'metadata' => 'array',
+    ];
+
+    protected $attributes = [
+        'approval_status' => 'approved',
     ];
 
     public function rfidTag(): BelongsTo

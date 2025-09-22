@@ -39,8 +39,8 @@ class VendorController extends Controller
 
     public function store(Request $request)
     {
-        // Only admins can create vendors
-        if (!$request->user()->isEventAdmin() && !$request->user()->isSuperAdmin()) {
+        // Only super admins can create vendors
+        if (!$request->user()->isSuperAdmin()) {
             return response()->json(['error' => 'Unauthorized to create vendors'], 403);
         }
 

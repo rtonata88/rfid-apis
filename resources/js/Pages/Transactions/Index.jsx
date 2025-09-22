@@ -99,30 +99,33 @@ export default function Index({ auth, transactions, filters = {} }) {
     return (
         <AuthenticatedLayout
             header={
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col space-y-4 sm:space-y-0 sm:flex-row sm:items-center sm:justify-between">
                     <h2 className="text-xl font-semibold leading-tight text-gray-800">
                         Transactions
                     </h2>
-                    <div className="flex space-x-3">
-                        <Link
-                            href="/tags"
-                            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium"
-                        >
-                            Manage Tags
-                        </Link>
-                    </div>
+                    {(auth.user.user_type === 'SUPER_ADMIN' || auth.user.user_type === 'EVENT_ADMIN') && (
+                        <div className="flex space-x-3">
+                            <Link
+                                href="/tags"
+                                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium text-center"
+                            >
+                                Manage Tags
+                            </Link>
+                        </div>
+                    )}
                 </div>
             }
         >
             <Head title="Transactions" />
 
-            <div className="py-12">
-                <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
+            <div className="py-6 sm:py-12">
+                <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
 
                     {/* Search and Filters */}
                     <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg mb-6">
-                        <div className="p-6">
-                            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                        <div className="p-4 sm:p-6">
+                            <div className="space-y-4">
+                                {/* Search Input - Full width on all devices */}
                                 <div className="relative">
                                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                         <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -146,58 +149,66 @@ export default function Index({ auth, transactions, filters = {} }) {
                                         </div>
                                     )}
                                 </div>
-                                <div>
-                                    <select
-                                        value={type}
-                                        onChange={(e) => {
-                                            setType(e.target.value);
-                                            setHasUserInteracted(true);
-                                        }}
-                                        className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                    >
-                                        <option value="">All Types</option>
-                                        <option value="load">Load</option>
-                                        <option value="spend">Spend</option>
-                                        <option value="refund">Refund</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <input
-                                        type="date"
-                                        placeholder="From Date"
-                                        value={dateFrom}
-                                        onChange={(e) => {
-                                            setDateFrom(e.target.value);
-                                            setHasUserInteracted(true);
-                                        }}
-                                        className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                    />
-                                </div>
-                                <div>
-                                    <input
-                                        type="date"
-                                        placeholder="To Date"
-                                        value={dateTo}
-                                        onChange={(e) => {
-                                            setDateTo(e.target.value);
-                                            setHasUserInteracted(true);
-                                        }}
-                                        className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                    />
-                                </div>
-                                <div className="flex space-x-2">
-                                    <button
-                                        onClick={handleSearch}
-                                        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm flex-1"
-                                    >
-                                        Search
-                                    </button>
-                                    <button
-                                        onClick={handleClearFilters}
-                                        className="bg-gray-300 hover:bg-gray-400 text-gray-700 px-4 py-2 rounded-md text-sm flex-1"
-                                    >
-                                        Clear
-                                    </button>
+                                
+                                {/* Filters Row */}
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                                        <select
+                                            value={type}
+                                            onChange={(e) => {
+                                                setType(e.target.value);
+                                                setHasUserInteracted(true);
+                                            }}
+                                            className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                        >
+                                            <option value="">All Types</option>
+                                            <option value="load">Load</option>
+                                            <option value="spend">Spend</option>
+                                            <option value="refund">Refund</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">From Date</label>
+                                        <input
+                                            type="date"
+                                            value={dateFrom}
+                                            onChange={(e) => {
+                                                setDateFrom(e.target.value);
+                                                setHasUserInteracted(true);
+                                            }}
+                                            className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">To Date</label>
+                                        <input
+                                            type="date"
+                                            value={dateTo}
+                                            onChange={(e) => {
+                                                setDateTo(e.target.value);
+                                                setHasUserInteracted(true);
+                                            }}
+                                            className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                        />
+                                    </div>
+                                    <div className="sm:col-span-2 lg:col-span-1">
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">&nbsp;</label>
+                                        <div className="flex space-x-2">
+                                            <button
+                                                onClick={handleSearch}
+                                                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm flex-1"
+                                            >
+                                                Search
+                                            </button>
+                                            <button
+                                                onClick={handleClearFilters}
+                                                className="bg-gray-300 hover:bg-gray-400 text-gray-700 px-4 py-2 rounded-md text-sm flex-1"
+                                            >
+                                                Clear
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -205,39 +216,39 @@ export default function Index({ auth, transactions, filters = {} }) {
 
                     {/* Summary Cards */}
                     {transactions?.summary && (
-                        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-                            <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
-                                <div className="text-2xl font-bold text-green-600">
+                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-6">
+                            <div className="bg-white overflow-hidden shadow-sm rounded-lg p-4 sm:p-6">
+                                <div className="text-lg sm:text-2xl font-bold text-green-600">
                                     {formatCurrency(transactions.summary.total_loaded || 0)}
                                 </div>
-                                <div className="text-sm text-gray-600">Total Loaded</div>
+                                <div className="text-xs sm:text-sm text-gray-600 mt-1">Total Loaded</div>
                                 <div className="text-xs text-gray-500 mt-1">
                                     {transactions.summary.load_count || 0} transactions
                                 </div>
                             </div>
-                            <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
-                                <div className="text-2xl font-bold text-purple-600">
+                            <div className="bg-white overflow-hidden shadow-sm rounded-lg p-4 sm:p-6">
+                                <div className="text-lg sm:text-2xl font-bold text-purple-600">
                                     {formatCurrency(transactions.summary.total_spent || 0)}
                                 </div>
-                                <div className="text-sm text-gray-600">Total Spent</div>
+                                <div className="text-xs sm:text-sm text-gray-600 mt-1">Total Spent</div>
                                 <div className="text-xs text-gray-500 mt-1">
                                     {transactions.summary.spend_count || 0} transactions
                                 </div>
                             </div>
-                            <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
-                                <div className="text-2xl font-bold text-red-600">
+                            <div className="bg-white overflow-hidden shadow-sm rounded-lg p-4 sm:p-6">
+                                <div className="text-lg sm:text-2xl font-bold text-red-600">
                                     {formatCurrency(transactions.summary.total_refunded || 0)}
                                 </div>
-                                <div className="text-sm text-gray-600">Total Refunded</div>
+                                <div className="text-xs sm:text-sm text-gray-600 mt-1">Total Refunded</div>
                                 <div className="text-xs text-gray-500 mt-1">
                                     {transactions.summary.refund_count || 0} transactions
                                 </div>
                             </div>
-                            <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
-                                <div className="text-2xl font-bold text-blue-600">
+                            <div className="bg-white overflow-hidden shadow-sm rounded-lg p-4 sm:p-6">
+                                <div className="text-lg sm:text-2xl font-bold text-blue-600">
                                     {transactions.summary.total_transactions || 0}
                                 </div>
-                                <div className="text-sm text-gray-600">Total Transactions</div>
+                                <div className="text-xs sm:text-sm text-gray-600 mt-1">Total Transactions</div>
                                 <div className="text-xs text-gray-500 mt-1">
                                     All time
                                 </div>
@@ -263,42 +274,107 @@ export default function Index({ auth, transactions, filters = {} }) {
                         </div>
                     )}
 
-                    {/* Transactions Table */}
-                    <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                        <div className="overflow-x-auto">
-                            <table className="min-w-full divide-y divide-gray-200">
-                                <thead className="bg-gray-50">
-                                    <tr>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Type
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Tag
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Amount
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Balance
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Vendor/Product
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Description
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Date
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody className="bg-white divide-y divide-gray-200">
-                                    {transactions?.data?.length > 0 ? transactions.data.map((transaction) => (
-                                        <tr key={transaction.id} className="hover:bg-gray-50">
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                {getTypeBadge(transaction.type)}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
+                    {/* Desktop Table Header - Hidden on mobile */}
+                    {transactions?.data?.length > 0 && (
+                        <div className="hidden lg:block bg-white overflow-hidden shadow-sm rounded-lg mb-4">
+                            <div className="px-6 py-3 bg-gray-50">
+                                <div className="grid grid-cols-7 gap-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <div className="text-center">Type</div>
+                                    <div>Tag</div>
+                                    <div>Amount</div>
+                                    <div>Balance</div>
+                                    <div>Vendor/Product</div>
+                                    <div>Description</div>
+                                    <div className="text-right">Date</div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Transactions List */}
+                    <div className="space-y-4">
+                        {transactions?.data?.length > 0 ? (
+                            transactions.data.map((transaction) => (
+                                <div key={transaction.id} className="bg-white overflow-hidden shadow-sm rounded-lg">
+                                    <div className="p-4 sm:p-6">
+                                        {/* Mobile Layout */}
+                                        <div className="block sm:hidden">
+                                            <div className="flex items-start justify-between mb-3">
+                                                <div className="flex items-center space-x-3">
+                                                    {getTypeBadge(transaction.type)}
+                                                    <div className="text-lg font-semibold">
+                                                        {getAmountDisplay(transaction)}
+                                                    </div>
+                                                </div>
+                                                <div className="text-right text-sm text-gray-500">
+                                                    <div>{new Date(transaction.created_at).toLocaleDateString()}</div>
+                                                    <div>{new Date(transaction.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
+                                                </div>
+                                            </div>
+                                            
+                                            <div className="space-y-2">
+                                                {transaction.rfid_tag && (
+                                                    <div className="flex items-center justify-between text-sm">
+                                                        <span className="text-gray-500">Tag:</span>
+                                                        <div className="text-right">
+                                                            <div className="font-medium text-gray-900">
+                                                                {transaction.rfid_tag.short_code}
+                                                            </div>
+                                                            {transaction.rfid_tag.attendee && (
+                                                                <div className="text-gray-500">
+                                                                    {transaction.rfid_tag.attendee.attendee_name}
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                )}
+                                                
+                                                {transaction.vendor && (
+                                                    <div className="flex items-center justify-between text-sm">
+                                                        <span className="text-gray-500">Vendor:</span>
+                                                        <div className="text-right">
+                                                            <div className="font-medium text-gray-900">
+                                                                {transaction.vendor.name}
+                                                            </div>
+                                                            {transaction.product && (
+                                                                <div className="text-gray-500">
+                                                                    {transaction.product.name}
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                )}
+                                                
+                                                <div className="flex items-center justify-between text-sm">
+                                                    <span className="text-gray-500">Balance:</span>
+                                                    <div className="text-right">
+                                                        <div className="text-gray-900">After: {formatCurrency(transaction.balance_after)}</div>
+                                                        <div className="text-gray-500">Before: {formatCurrency(transaction.balance_before)}</div>
+                                                    </div>
+                                                </div>
+                                                
+                                                {transaction.description && (
+                                                    <div className="text-sm">
+                                                        <span className="text-gray-500">Description: </span>
+                                                        <span className="text-gray-900">{transaction.description}</span>
+                                                    </div>
+                                                )}
+                                                
+                                                {transaction.reference && (
+                                                    <div className="text-xs text-gray-500">
+                                                        Ref: {transaction.reference}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        {/* Desktop Layout */}
+                                        <div className="hidden sm:block">
+                                            <div className="grid grid-cols-7 gap-4 items-start">
+                                                <div className="flex justify-center">
+                                                    {getTypeBadge(transaction.type)}
+                                                </div>
+                                                
                                                 <div>
                                                     <div className="text-sm font-medium text-gray-900">
                                                         {transaction.rfid_tag?.short_code || 'N/A'}
@@ -309,120 +385,125 @@ export default function Index({ auth, transactions, filters = {} }) {
                                                         </div>
                                                     )}
                                                 </div>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm">
-                                                {getAmountDisplay(transaction)}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="text-sm text-gray-900">
-                                                    Before: {formatCurrency(transaction.balance_before)}
+                                                
+                                                <div className="text-sm font-medium">
+                                                    {getAmountDisplay(transaction)}
                                                 </div>
-                                                <div className="text-sm font-medium text-gray-900">
-                                                    After: {formatCurrency(transaction.balance_after)}
+                                                
+                                                <div className="text-sm">
+                                                    <div className="text-gray-900">
+                                                        Before: {formatCurrency(transaction.balance_before)}
+                                                    </div>
+                                                    <div className="font-medium text-gray-900">
+                                                        After: {formatCurrency(transaction.balance_after)}
+                                                    </div>
                                                 </div>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                {transaction.vendor ? (
-                                                    <div>
-                                                        <div className="text-sm font-medium text-gray-900">
-                                                            {transaction.vendor.name}
-                                                        </div>
-                                                        {transaction.product && (
-                                                            <div className="text-sm text-gray-500">
-                                                                {transaction.product.name}
+                                                
+                                                <div>
+                                                    {transaction.vendor ? (
+                                                        <div>
+                                                            <div className="text-sm font-medium text-gray-900">
+                                                                {transaction.vendor.name}
                                                             </div>
-                                                        )}
+                                                            {transaction.product && (
+                                                                <div className="text-sm text-gray-500">
+                                                                    {transaction.product.name}
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    ) : (
+                                                        <span className="text-sm text-gray-400">System</span>
+                                                    )}
+                                                </div>
+                                                
+                                                <div>
+                                                    <div className="text-sm text-gray-900 max-w-xs truncate">
+                                                        {transaction.description || 'No description'}
                                                     </div>
-                                                ) : (
-                                                    <span className="text-sm text-gray-400">System</span>
-                                                )}
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <div className="text-sm text-gray-900 max-w-xs truncate">
-                                                    {transaction.description || 'No description'}
-                                                </div>
-                                                {transaction.reference && (
-                                                    <div className="text-xs text-gray-500">
-                                                        Ref: {transaction.reference}
-                                                    </div>
-                                                )}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="text-sm text-gray-900">
-                                                    {new Date(transaction.created_at).toLocaleDateString()}
-                                                </div>
-                                                <div className="text-sm text-gray-500">
-                                                    {new Date(transaction.created_at).toLocaleTimeString()}
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    )) : (
-                                        <tr>
-                                            <td colSpan="7" className="px-6 py-12 text-center">
-                                                <div className="text-gray-500">
-                                                    <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-                                                    </svg>
-                                                    <h3 className="mt-2 text-sm font-medium text-gray-900">
-                                                        {search || type || dateFrom || dateTo ? 'No matching transactions' : 'No transactions yet'}
-                                                    </h3>
-                                                    <p className="mt-1 text-sm text-gray-500">
-                                                        {search || type || dateFrom || dateTo 
-                                                            ? 'Try adjusting your search filters.' 
-                                                            : 'Transactions will appear here once tags are used.'
-                                                        }
-                                                    </p>
-                                                    {!(search || type || dateFrom || dateTo) && (
-                                                        <div className="mt-6">
-                                                            <Link
-                                                                href="/tags"
-                                                                className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
-                                                            >
-                                                                View Tags
-                                                            </Link>
+                                                    {transaction.reference && (
+                                                        <div className="text-xs text-gray-500">
+                                                            Ref: {transaction.reference}
                                                         </div>
                                                     )}
                                                 </div>
-                                            </td>
-                                        </tr>
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
-
-                        {/* Pagination */}
-                        {transactions?.links?.length > 3 && (
-                            <div className="bg-white px-4 py-3 border-t border-gray-200 sm:px-6">
-                                <div className="flex justify-between items-center">
-                                    <div className="text-sm text-gray-700">
-                                        Showing {transactions?.from} to {transactions?.to} of {transactions?.total} results
+                                                
+                                                <div className="text-right text-sm">
+                                                    <div className="text-gray-900">
+                                                        {new Date(transaction.created_at).toLocaleDateString()}
+                                                    </div>
+                                                    <div className="text-gray-500">
+                                                        {new Date(transaction.created_at).toLocaleTimeString()}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div className="flex space-x-1">
-                                        {transactions?.links?.map((link, index) => (
-                                            link.url ? (
+                                </div>
+                            ))
+                        ) : (
+                            <div className="bg-white overflow-hidden shadow-sm rounded-lg">
+                                <div className="px-6 py-12 text-center">
+                                    <div className="text-gray-500">
+                                        <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                                        </svg>
+                                        <h3 className="mt-2 text-sm font-medium text-gray-900">
+                                            {search || type || dateFrom || dateTo ? 'No matching transactions' : 'No transactions yet'}
+                                        </h3>
+                                        <p className="mt-1 text-sm text-gray-500">
+                                            {search || type || dateFrom || dateTo 
+                                                ? 'Try adjusting your search filters.' 
+                                                : 'Transactions will appear here once tags are used.'
+                                            }
+                                        </p>
+                                        {!(search || type || dateFrom || dateTo) && (auth.user.user_type === 'SUPER_ADMIN' || auth.user.user_type === 'EVENT_ADMIN') && (
+                                            <div className="mt-6">
                                                 <Link
-                                                    key={index}
-                                                    href={link.url}
-                                                    className={`px-3 py-2 text-sm rounded-md ${
-                                                        link.active
-                                                            ? 'bg-blue-600 text-white'
-                                                            : 'bg-white text-gray-700 hover:bg-gray-50 border'
-                                                    }`}
-                                                    dangerouslySetInnerHTML={{ __html: link.label }}
-                                                />
-                                            ) : (
-                                                <span
-                                                    key={index}
-                                                    className="px-3 py-2 text-sm rounded-md bg-gray-100 text-gray-400 cursor-not-allowed"
-                                                    dangerouslySetInnerHTML={{ __html: link.label }}
-                                                />
-                                            )
-                                        ))}
+                                                    href="/tags"
+                                                    className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+                                                >
+                                                    View Tags
+                                                </Link>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             </div>
                         )}
                     </div>
+
+                    {/* Pagination */}
+                    {transactions?.links?.length > 3 && (
+                        <div className="bg-white px-4 py-3 rounded-lg shadow-sm mt-6">
+                            <div className="flex flex-col sm:flex-row justify-between items-center space-y-3 sm:space-y-0">
+                                <div className="text-sm text-gray-700 text-center sm:text-left">
+                                    Showing {transactions?.from} to {transactions?.to} of {transactions?.total} results
+                                </div>
+                                <div className="flex flex-wrap justify-center gap-1">
+                                    {transactions?.links?.map((link, index) => (
+                                        link.url ? (
+                                            <Link
+                                                key={index}
+                                                href={link.url}
+                                                className={`px-3 py-2 text-sm rounded-md ${
+                                                    link.active
+                                                        ? 'bg-blue-600 text-white'
+                                                        : 'bg-white text-gray-700 hover:bg-gray-50 border'
+                                                }`}
+                                                dangerouslySetInnerHTML={{ __html: link.label }}
+                                            />
+                                        ) : (
+                                            <span
+                                                key={index}
+                                                className="px-3 py-2 text-sm rounded-md bg-gray-100 text-gray-400 cursor-not-allowed"
+                                                dangerouslySetInnerHTML={{ __html: link.label }}
+                                            />
+                                        )
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
         </AuthenticatedLayout>

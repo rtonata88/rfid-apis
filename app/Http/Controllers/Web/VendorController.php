@@ -6,8 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Models\Vendor;
 use App\Models\Product;
 use App\Models\TagTransaction;
+use App\Mail\VendorWelcome;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Inertia\Inertia;
 
 class VendorController extends Controller
@@ -48,10 +51,10 @@ class VendorController extends Controller
         ]);
     }
 
-    public function create()
+    public function create(Request $request)
     {
-        // Only admins can create vendors
-        if (!auth()->user()->isEventAdmin() && !auth()->user()->isSuperAdmin()) {
+        // Only super admins can create vendors
+        if (!$request->user()->isSuperAdmin()) {
             abort(403, 'Unauthorized to create vendors');
         }
 
@@ -60,8 +63,8 @@ class VendorController extends Controller
 
     public function store(Request $request)
     {
-        // Only admins can create vendors
-        if (!$request->user()->isEventAdmin() && !$request->user()->isSuperAdmin()) {
+        // Only super admins can create vendors
+        if (!$request->user()->isSuperAdmin()) {
             abort(403, 'Unauthorized to create vendors');
         }
 
@@ -76,6 +79,12 @@ class VendorController extends Controller
         ]);
 
         $vendor = Vendor::create($request->all());
+
+        // Load the vendor with its user relationship for email sending
+        $vendor->load('user');
+
+        // Send welcome email to the vendor
+        $this->sendWelcomeEmail($vendor);
 
         return redirect()->route('vendors.index')->with('success', 'Vendor created successfully!');
     }
@@ -106,15 +115,15 @@ class VendorController extends Controller
                                    ->get();
 
         // Get top products
-        $topProducts = Product::where('vendor_id', $vendor->id)
-                             ->select('products.*')
+        $topProducts = Product::where('products.vendor_id', $vendor->id)
+                             ->select('products.id', 'products.vendor_id', 'products.name', 'products.description', 'products.price', 'products.sku', 'products.category', 'products.is_available', 'products.stock_quantity', 'products.image_url', 'products.created_at', 'products.updated_at')
                              ->selectRaw('COALESCE(SUM(tag_transactions.amount), 0) as total_revenue')
                              ->selectRaw('COALESCE(SUM(tag_transactions.quantity), 0) as total_sold')
                              ->leftJoin('tag_transactions', function($join) {
                                  $join->on('products.id', '=', 'tag_transactions.product_id')
                                       ->where('tag_transactions.type', '=', 'spend');
                              })
-                             ->groupBy('products.id')
+                             ->groupBy('products.id', 'products.vendor_id', 'products.name', 'products.description', 'products.price', 'products.sku', 'products.category', 'products.is_available', 'products.stock_quantity', 'products.image_url', 'products.created_at', 'products.updated_at')
                              ->orderBy('total_revenue', 'desc')
                              ->limit(5)
                              ->get();
@@ -131,8 +140,8 @@ class VendorController extends Controller
     {
         $vendor = Vendor::with(['user'])->findOrFail($id);
 
-        // Check permissions
-        if (!$request->user()->isEventAdmin() && !$request->user()->isSuperAdmin() && 
+        // Check permissions - only super admins and vendors can edit their own vendor
+        if (!$request->user()->isSuperAdmin() && 
             (!$request->user()->isVendor() || $vendor->user_id !== $request->user()->id)) {
             abort(403, 'Unauthorized to edit this vendor');
         }
@@ -146,8 +155,8 @@ class VendorController extends Controller
     {
         $vendor = Vendor::findOrFail($id);
 
-        // Check permissions
-        if (!$request->user()->isEventAdmin() && !$request->user()->isSuperAdmin() && 
+        // Check permissions - only super admins and vendors can edit their own vendor
+        if (!$request->user()->isSuperAdmin() && 
             (!$request->user()->isVendor() || $vendor->user_id !== $request->user()->id)) {
             abort(403, 'Unauthorized to edit this vendor');
         }
@@ -171,8 +180,8 @@ class VendorController extends Controller
 
     public function destroy(Request $request, $id)
     {
-        // Only admins can delete vendors
-        if (!$request->user()->isEventAdmin() && !$request->user()->isSuperAdmin()) {
+        // Only super admins can delete vendors
+        if (!$request->user()->isSuperAdmin()) {
             abort(403, 'Unauthorized to delete vendors');
         }
 
@@ -191,5 +200,38 @@ class VendorController extends Controller
         $vendor->delete();
 
         return redirect()->route('vendors.index')->with('success', 'Vendor deleted successfully!');
+    }
+
+    /**
+     * Send welcome email to the newly created vendor
+     */
+    private function sendWelcomeEmail(Vendor $vendor): void
+    {
+        try {
+            // Determine which email to send to
+            $emailAddress = null;
+            
+            if ($vendor->user && $vendor->user->email) {
+                // If vendor has an associated user, send to the user's email
+                $emailAddress = $vendor->user->email;
+            } elseif ($vendor->contact_email) {
+                // Otherwise, send to the vendor's contact email
+                $emailAddress = $vendor->contact_email;
+            }
+
+            // Only send email if we have a valid email address
+            if ($emailAddress && filter_var($emailAddress, FILTER_VALIDATE_EMAIL)) {
+                Mail::to($emailAddress)->send(new VendorWelcome($vendor));
+                
+                // Log the email sending (optional)
+                Log::info("Welcome email sent to vendor: {$vendor->name} at {$emailAddress}");
+            } else {
+                // Log warning if no valid email found
+                Log::warning("Could not send welcome email to vendor: {$vendor->name} - no valid email address found");
+            }
+        } catch (\Exception $e) {
+            // Log the error but don't break the vendor creation process
+            Log::error("Failed to send welcome email to vendor: {$vendor->name}. Error: " . $e->getMessage());
+        }
     }
 }

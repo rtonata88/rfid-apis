@@ -9,7 +9,7 @@ export default function Dashboard({
     transactionStats,
     recentTransactions,
     topVendors,
-    topProducts,
+    recentProducts,
     chartData,
     dateRange
 }) {
@@ -109,16 +109,21 @@ export default function Dashboard({
                         </div>
 
                         <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
-                            <h3 className="text-lg font-semibold text-gray-800 mb-4">Top Products</h3>
+                            <h3 className="text-lg font-semibold text-gray-800 mb-4">Recent Products</h3>
                             <div className="space-y-3">
-                                {topProducts.map((product, index) => (
+                                {recentProducts.map((product, index) => (
                                     <div key={product.id} className="flex justify-between items-center">
                                         <div>
                                             <div className="font-medium text-sm">{product.name}</div>
-                                            <div className="text-xs text-gray-500">{formatNumber(product.total_sold)} sold</div>
+                                            <div className="text-xs text-gray-500">
+                                                {product.category || 'Uncategorized'} • {product.vendor?.name}
+                                            </div>
                                         </div>
                                         <div className="text-right">
-                                            <div className="font-medium text-purple-600">{formatCurrency(product.total_revenue)}</div>
+                                            <div className="font-medium text-purple-600">{formatCurrency(product.price)}</div>
+                                            <div className={`text-xs ${product.is_available ? 'text-green-600' : 'text-red-600'}`}>
+                                                {product.is_available ? 'Available' : 'Unavailable'}
+                                            </div>
                                         </div>
                                     </div>
                                 ))}

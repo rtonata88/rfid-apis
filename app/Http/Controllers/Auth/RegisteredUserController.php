@@ -40,6 +40,7 @@ class RegisteredUserController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'user_type' => 'ATTENDEE', // All registrations default to ATTENDEE
         ]);
 
         event(new Registered($user));

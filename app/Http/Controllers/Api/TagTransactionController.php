@@ -237,7 +237,8 @@ class TagTransactionController extends Controller
                 'vendor_terminal_id' => $request->vendor_terminal_id,
                 'product_id' => $request->product_id,
                 'type' => 'refund',
-                'payment_method' => $request->payment_method,
+                'payment_method' => 'Refund',
+                'approval_status' => 'approved', // Staff/vendor processed refunds are automatically approved
                 'amount' => $request->amount,
                 'balance_before' => $balanceBefore,
                 'balance_after' => $tag->balance,

@@ -1,0 +1,13 @@
+# Mailtrap Setup (Email Testing - catches all emails)
+# 1. Sign up for free at https://mailtrap.io
+# 2. Create an inbox and get SMTP credentials
+# 3. Update your .env file:
+
+MAIL_MAILER=smtp
+MAIL_HOST=sandbox.smtp.mailtrap.io
+MAIL_PORT=2525
+MAIL_USERNAME=your_mailtrap_username
+MAIL_PASSWORD=your_mailtrap_password
+MAIL_ENCRYPTION=null
+
+# All emails will be caught in your Mailtrap inbox for testing
