@@ -47,6 +47,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/transactions/spend', [TagTransactionController::class, 'spendMoney']);
     Route::post('/transactions/refund', [TagTransactionController::class, 'refund']);
 
+    // Cash-Up Management Routes (Multiple times per shift)
+    Route::prefix('cash-up')->group(function () {
+        Route::get('/current', [TagTransactionController::class, 'getCurrentCashUp']);
+        Route::post('/record', [TagTransactionController::class, 'recordCashUp']);
+        Route::get('/today', [TagTransactionController::class, 'getTodaysCashUps']);
+    });
+
     // Product Management
     Route::post('/products', [ProductController::class, 'store']);
     Route::put('/products/{id}', [ProductController::class, 'update']);
@@ -58,6 +65,15 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/vendors/{id}', [VendorController::class, 'update']);
     Route::delete('/vendors/{id}', [VendorController::class, 'destroy']);
     Route::get('/vendors/{id}/sales', [VendorController::class, 'getSales']);
+
+    // Enhanced Analytics Routes for Single-Night Event
+    Route::prefix('vendors/{id}/analytics')->group(function () {
+        Route::get('/event', [VendorController::class, 'getEventAnalytics']);
+        Route::get('/inventory-alerts', [VendorController::class, 'getInventoryAlerts']);
+        Route::get('/stock-trends', [VendorController::class, 'getStockMovementTrend']);
+        Route::get('/live-dashboard', [VendorController::class, 'getLiveSalesDashboard']);
+        Route::get('/quick-summary', [VendorController::class, 'getQuickSummary']);
+    });
 
     // Terminal Management
     Route::apiResource('terminals', VendorTerminalController::class)->names([

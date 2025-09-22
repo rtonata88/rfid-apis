@@ -3,6 +3,8 @@
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Web\TagController;
+use App\Http\Controllers\Web\VendorController;
+use App\Http\Controllers\Web\TransactionController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -43,14 +45,11 @@ Route::middleware('auth')->group(function () {
         ]);
     })->name('tags.debug');
 
-    // Additional management routes
-    Route::get('/vendors', function () {
-        return Inertia::render('Vendors/Index');
-    })->name('vendors.index');
+    // Vendor management routes
+    Route::resource('vendors', VendorController::class);
 
-    Route::get('/transactions', function () {
-        return Inertia::render('Transactions/Index');
-    })->name('transactions.index');
+    // Transaction management routes
+    Route::resource('transactions', TransactionController::class);
 });
 
 require __DIR__.'/auth.php';

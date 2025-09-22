@@ -17,6 +17,7 @@ class TagTransaction extends Model
         'vendor_terminal_id',
         'product_id',
         'type',
+        'payment_method',
         'amount',
         'quantity',
         'balance_before',
